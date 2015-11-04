@@ -1,0 +1,177 @@
+/* 
+ * Graham Goudeau & Deanna Bessy  
+ * Homework #6, UM
+ * segment_memory.c
+ * 1/4/15
+ */
+
+#include <stdlib.h>
+#include <table.h>
+#include <stack.h>
+#include <assert.h>
+#include <atom.h>
+#include "segment_memory.h"
+
+/*********************************************************************
+ * Struct that contains the table that represents segmented memory,  *
+ * the stack that stored segment id's that have been freed, and      *
+ * the word that keeps track of the next available unused segment id.*
+ *********************************************************************/
+struct memory_data {
+        Table_T segment_ids;
+        word max_unused_id;
+        Stack_T unmapped_ids;
+};
+
+/********************************************************************
+ * Struct that contains the array of words that represents a segment*
+ * and the length of the segment.                                   *
+ ********************************************************************/
+struct segment {
+        word *data;
+        size_t length;
+};
+
+memory_data initialize_memory(void)
+{
+        memory_data new_memory = malloc(sizeof(struct memory_data));
+        new_memory->segment_ids = Table_new(0, NULL, NULL);
+        new_memory->unmapped_ids = Stack_new();
+        new_memory->max_unused_id = 0;
+
+        return new_memory;
+}
+
+size_t get_operator(size_t program_counter, memory_data memory)
+{
+        return get_word(0, program_counter, memory);
+}
+
+void free_memory(memory_data memory)
+{
+        assert(memory != NULL);
+        assert(memory->segment_ids != NULL);
+        assert(memory->unmapped_ids != NULL);
+        int table_len = Table_length(memory->segment_ids);
+        void **table_arr = Table_toArray(memory->segment_ids, NULL);
+        int i;
+	/*
+	 * Walks through the array and frees each array of words 
+         * and segment struct.
+	 */
+        for (i = 0; i < (2 * table_len) - 1; i += 2) {
+                free(((struct segment*)table_arr[i + 1])->data);
+                free(table_arr[i + 1]);
+        }
+
+        Table_free(&memory->segment_ids);
+        free(table_arr);
+	/* 
+         * Frees all of the unmapped ids in the stack
+         */
+        while (Stack_empty(memory->unmapped_ids) != 1)
+                free(Stack_pop(memory->unmapped_ids));
+
+        Stack_free(&memory->unmapped_ids);
+        free(memory);
+}
+
+segment_id map_segment(size_t length, memory_data memory)
+{
+        const char *id_string;
+        segment_id return_id;
+	/*
+         * If there is a previously unmapped id in the stack, 
+         * pop it and use as the id for the segment being mapped.
+         * Otherwise, use the max unused id.
+         */
+        if (Stack_empty(memory->unmapped_ids) == 0) {
+                segment_id *id = Stack_pop(memory->unmapped_ids);
+                id_string = Atom_int((long)*id);
+                return_id = *id;
+                free(id);
+        }
+        else {
+                id_string = Atom_int((long)memory->max_unused_id);
+                return_id = memory->max_unused_id;
+		if (return_id == 0)
+			assert(Table_length(memory->segment_ids) == 0);
+                memory->max_unused_id++;
+        }
+
+        /* Allocating memory for the new segment */
+        struct segment *new_segment = malloc(sizeof(struct segment));
+        assert(new_segment != NULL);
+        word *new_memory = malloc(sizeof(uint32_t) * length);
+        assert(new_memory != NULL);
+        new_segment->data = new_memory;
+        new_segment->length = length;
+
+        size_t i;
+        for (i = 0; i < length; i++)
+                new_segment->data[i] = 0;
+
+        Table_put(memory->segment_ids, id_string, new_segment);
+        return return_id;
+}
+
+void unmap_segment(segment_id id, memory_data memory)
+{  
+	/*Remove segment from table and free associated memory*/     
+        const char *id_string = Atom_int((long)id);
+        struct segment *memory_data = Table_remove(memory->segment_ids, 
+                                                   id_string);
+        free(memory_data->data);
+        free(memory_data);
+
+	/*Allocate memory for and push unused id onto the stack */
+        segment_id *unused_id = malloc(sizeof(segment_id));
+        assert(unused_id != NULL);
+        *unused_id = id;
+        Stack_push(memory->unmapped_ids, unused_id);
+}
+
+word get_word(segment_id id, size_t offset, memory_data memory)
+{
+        const char *id_string = Atom_int((long)id);
+        struct segment *from_segment = Table_get(memory->segment_ids, id_string);
+        return from_segment->data[offset];
+}
+
+void write_word(segment_id id, size_t offset, word data, memory_data memory)
+{
+        const char *id_string = Atom_int((long)id);
+        struct segment *memory_data = Table_get(memory->segment_ids, id_string);
+        memory_data->data[offset] = data;
+}
+
+void load_program(segment_id id, memory_data memory)
+{
+	/* Get the segment to be duplicated */
+        segment_id zero = 0;
+        const char *id_string = Atom_int((long)id);
+        struct segment *duplicated = Table_get(memory->segment_ids, id_string);
+
+	/*Get segment 0 */
+        const char *zero_string = Atom_int((long)zero);
+        struct segment *zero_segm = Table_get(memory->segment_ids, zero_string);
+        
+	/* Change segment 0's length to that of the duplicated segment */
+        size_t dupl_length = duplicated->length;
+        zero_segm->length = dupl_length;     
+
+	/* Create a new array of words */   
+        word *new_segment = malloc(sizeof(word) * dupl_length);
+        assert(new_segment != NULL);
+
+	/* Overwrite segment 0's data with the new array of words and fill it 
+         * with words from the segment being duplicated. 
+         */
+        free(zero_segm->data);
+        zero_segm->data = new_segment;
+        size_t i;
+        for (i = 0; i < dupl_length; i++) {
+                zero_segm->data[i] = duplicated->data[i];
+        }
+}
+

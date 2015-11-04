@@ -1,0 +1,13 @@
+add_test.um
+cipher_test.um
+cond_move_nonzero_test.um
+cond_move_zero_test.um
+div_test.um
+goto.um
+halt.um
+map_unmap_test.um
+mult_test.um
+nand_print_digit.um
+print_digit.um
+read_put_char.um
+run_time_test.um

@@ -1,0 +1,94 @@
+Deanna Bessy & Josh Berl 
+
+Collaboration: 
+        Help from TAs. Also talked about problem solving with Bruno Olmedo
+        and generally discussed what problems we were running into with other
+        groups who happened to be working at the same time as us. 
+What Has Been Implemented: 
+        Mostly everything. Bitpack doesn't work with shifts of 64 or larger
+        though. I broke our program trying to define static inlinefunctions to 
+        fix this and didn't have the heart to try again after spending an hour
+        fixing it. 
+Architecture: 
+1. In main, parse user input and use pnm.h to create a pnm_ppm image. Then 
+create a UArray2b with a blocksize of 2 from the pixels pixmap in the image.
+ 
+2. UArray_T map_blocks(UArray2b_T image);  
+This is an apply function to be used with the block major mapping function 
+written to work with UArray2b_T. It calls the next function pix_to_float on 
+each 2x2 block. If either the height or width dimensions are an odd number, the
+last row or column is lost.
+
+3. float_pixel pix_to_float(UArray_T block); 
+
+struct 4_fpixels {
+        float_pixel pix1; 
+        float_pixel pix2; 
+        float_pixel pix3; 
+        float_pixel pix4; 
+}; 
+
+struct float_pixel {
+        float red; 
+        float green; 
+        float blue; 
+}; 
+
+For all of the four pixels in each block, access the pixel integer values
+and convert them to floats. Store each pixel in a float_pixel struct, each with
+three floating point r,g,b values. Then store the four float_pixel structs in 
+a 4_fpixels struct, which is returned. 
+
+4. 4_vpixels rgb_to_vidcomp(4_fpixels fblock);
+
+struct vid_pixel {
+        float Y; 
+        float Pb; 
+        float Pr; 
+}; 
+
+struct 4_vpixels { 
+        vid_pixel v1; 
+        vid_pixel v2; 
+        vid_pixel v3; 
+        vid_pixel v4; 
+};
+ 
+Given a 4_fpixels calles fblock, calculate Y, Pb and Pr for each one contained 
+pixel:
+Y = 0.299 * r + 0.587 * g + 0.114 * b
+Pb = -0.168736 * r - 0.331264 * g + 0.5 * b
+Pr = 0.5 * r - 0.418688 * g - 0.081312 * b
+ Y is brightness 0 - 1, Pb and Pr are the color-difference signals -0.5 - 
++0.5. Store each Y, Pb, Pr triad in a vid_pixel struct, then store all four 
+vid_pixel structs in a 4_vpixels struct that is returned.  
+
+5. compblock block_compress(4_vpixels blockvid)
+
+struct compblock {
+        int pbavg;
+        int pravg;
+        int a;
+        int b;
+        int c;
+        int d;
+};
+         
+Given a 4_vpixels struct, average the four pb values and the four pr values to 
+find Pb` and Pr`. Calculate the coefficients a, b, c, and d using the four 
+different Y values. 
+Write each of these values to a scaled integer, and return a compblock struct 
+containing the six scaled integers.
+a will be an unsigned scaled integer
+b, c, and d will be five-bit signed integers that are between -0.3 and 0.3  
+Y1 = a - b - c + d
+Y2 = a - b + c - d
+Y3 = a + b - c - d
+Y4 = a + b + c + d
+
+Bitpack then packs these into 32 bit codewords. Unpacking works by mirroring 
+all of the compression steps backwards.
+
+
+Hours Spent Analyzing: 3
+Hours Spent Solving: 38

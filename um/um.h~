@@ -1,0 +1,14 @@
+/* 
+ * Graham Goudeau & Deanna Bessy  
+ * Homework #6, UM
+ * segment_memory.c
+ * 1/5/15
+ */
+#ifndef UM_H
+#define UM_H
+
+#include "segment_memory.h"
+
+void run(const char *fp);
+
+#endif

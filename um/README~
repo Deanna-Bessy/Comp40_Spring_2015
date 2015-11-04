@@ -1,0 +1,53 @@
+Graham Goudeau & Deanna Bessy
+Hw 6, Universal Machine
+4/6/15
+
+-Collaboration: 
+Discussing ideas and problem solving with other 40 students in Halligan at 
+the same time, help from TAs. 
+
+-What's Correctly Implemented: 
+The entire universal machine. 
+
+-Significant Departures From Design: 
+Overall architecture is very similar to what's outlined in the design doc. 
+Many of the modules contain functions that we did not originally anticipate 
+having. These are mostly helper functions and functions that help modularize
+code. 
+The most imortant change is that the on disk format module does not 
+handle getting the next word from the on-disk file, parsing it for the
+instruction, and returning that instruction. It only boots the memory and 
+fills segment 0 with the inputted program. The um module handles parsing & 
+executing instructions and calling a function from the segmented memory 
+module that gets an instruction.
+
+-Architecture:
+
+    Main module: 
+	Only checks that there is only one argument given, and calls run on it.
+	It knows no secrets.
+
+    Segmented memory module:
+        This interface manages the UM's segmented memory, by keeping track of
+            active segment identifiers and associated data.
+
+    On-disk format interface:
+        This module gets the words from the on-disk file, parses them for the
+            op codes and indicated registers, and sends those to the UM
+            execution phase.
+
+    UM interface:
+        This module does the actual instruction execution, and handles the
+            registers by keeping them in an array. It reads and writes to the
+            segmented memory as needed.
+
+-How Long 50 Million Instructions Takes: 
+We have a test program that executes 500 thousand instructions. It takes .075
+seconds, meaning that 50 million instructions should take about 7.5 seconds.
+
+-UM unit tests: 
+
+-Hours Spent Analyzing: 2
+-Hours Spent Preparing Design: 3
+-Hours Spent Writing Code: 8 
+

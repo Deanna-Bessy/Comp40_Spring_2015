@@ -1,0 +1,166 @@
+/* 
+ * bitpack.c
+ * Deanna Bessy and Josh Berl, 2-26-15
+ * HW4 - arith  
+ *
+ * Manipulates uint64_t "codewords," packing in signed or unsigned values based 
+ * on their width in bits. Also unpacks values from codewords or checks to see
+ * if a value can be fit in a specified amount of bits, signed or unsigned.
+ *
+ * NOTE: Will not work if shifting by 64 or more.
+ */
+
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "except.h"
+#include "assert.h"
+#include "bitpack.h"
+#include "stdio.h"
+
+const unsigned LENGTH = 64;
+
+
+/* Bitpack_fitsu
+ *      parameters: uint64_t n  unsigned width
+ *      returns: True if it fits, false if it doesnt.
+ *      effects: Checks to see if the uint64_t will fit in width 
+ *               amount of bits, unsigned.
+ */
+bool Bitpack_fitsu(uint64_t n, unsigned width)
+{
+        if (width == 0) {
+                return false;
+        }
+        uint64_t max_size = (1 << (width - 1));
+        uint64_t mask = ~0;
+        mask = (mask >> (LENGTH - width));
+        max_size = (max_size | mask);
+        if (n <= max_size) {
+                return true;
+        } else {
+                return false;
+        }
+}
+
+/* Bitpack_fitss
+ *      parameters: int64_t n  unsigned width
+ *      returns: True if it fits, false if it doesnt.
+ *      effects: Checks to see if the int64_t will fit in width 
+ *               amount of bits, signed.
+ */   
+bool Bitpack_fitss(int64_t n, unsigned width)
+{
+        if (width == 0) {
+                return false;
+        }
+        int64_t min_size = ~0; 
+        min_size = (min_size << (width - 1));
+        int64_t max_size = ~0;
+        max_size = (max_size << ((width - 1)));
+        max_size = ~max_size;
+        if (n <= max_size && n >= min_size) {
+                return true;
+        } else {
+                return false;
+        }
+}
+
+/* Bitpack_getu
+ *      parameters: uint64_t word (the word to extract a value from)
+ *                  unsigned width (the number of bits in the value)
+ *                  unsigned lsb (the locationof the value's least 
+ *                                significant bit)      
+ *      returns: The value of the given width extracted from the given word
+ *               at the given location, unsigned. 
+ *      effects: No effect on the word, but returns a value it contains.
+ */
+uint64_t Bitpack_getu(uint64_t word, unsigned width, unsigned lsb)
+{
+        assert(width != 0);
+        assert((width <= LENGTH) && (width + lsb <= LENGTH)); 
+        uint64_t mask = ~0;
+        mask = mask >> (LENGTH- width) << (lsb);
+        mask = (word & mask) >> lsb;
+        return mask;
+}
+
+/* Bitpack_gets
+ *      parameters: uint64_t word (the word to extract a value from)
+ *                  unsigned width (the number of bits in the value)
+ *                  unsigned lsb (the locationof the value's least 
+ *                                significant bit)      
+ *      returns: The value of the given width extracted from the given word
+ *               at the given location, signed. 
+ *      effects: No effect on the word, but returns a value it contains.
+ */
+int64_t Bitpack_gets(uint64_t word, unsigned width, unsigned lsb)
+{
+        assert(width != 0);
+        assert((width <= LENGTH) && (width + lsb <= LENGTH)); 
+        int64_t tempword = (word << (LENGTH- (width + lsb)));
+        if (tempword < 0) {
+                int64_t mask = tempword; 
+                mask = mask >> (LENGTH- width); 
+                return mask; 
+        } else {
+                return (int64_t)(Bitpack_getu(word, width, lsb));
+        } 
+}
+
+/* Bitpack_newu
+ *      parameters: uint64_t word (the word to put a value in)
+ *                  unsigned width (the number of bits in the value being 
+ *                                  inserted)
+ *                  unsigned lsb (the location of the value's desired least 
+ *                                significant bit)
+ *                  uint64_t value (the desired unsigned value to be put in 
+ *                                  the word)                   
+ *      returns: The modified uint64_t with the new value added.
+ *      effects: Adds a value of a specified width at a specified location
+ *               to an already-existing word.
+ */
+uint64_t Bitpack_newu(uint64_t word, unsigned width, unsigned lsb,
+                      uint64_t value)
+{
+        assert(Bitpack_fitsu(value, width));
+        uint64_t mask = ~0;
+        mask = mask >> (LENGTH- width) << lsb;
+        mask = ~mask;
+        mask = (word & mask);
+        return (mask | (value << lsb));
+}
+
+/* Bitpack_news
+ *      parameters: uint64_t word (the word to put a value in)
+ *                  unsigned width (the number of bits in the value being 
+ *                                  inserted)
+ *          unsigned lsb (the location of the value's desired least 
+ *                        significant bit)
+ *          int64_t value (the desired signed value to be put in 
+ *                          the word)                   
+ *      returns: The modified uint64_t with the new value added.
+ *      effects: No effect on the word, but returns a value it contains.
+ */
+uint64_t Bitpack_news(uint64_t word, unsigned width, unsigned lsb,  
+                      int64_t value)
+{
+        assert(Bitpack_fitss(value, width));
+        if (value < 0) {
+                uint64_t mask = ~0;
+                mask = (mask >> (LENGTH- width));
+                mask = (mask << lsb);
+                uint64_t temp_mask = ~mask;
+                temp_mask = (temp_mask & word);
+                mask = (mask & (value << lsb));
+                return (temp_mask | mask);
+        } else {
+                uint64_t mask = ~0;
+                mask = mask >> (LENGTH- width) << lsb;
+                mask = ~mask;
+                mask = (word & mask);
+                return (mask | (value << lsb));
+        }
+}
+
+Except_T Bitpack_Overflow = { "Overflow packing bits" };
