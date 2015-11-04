@@ -1,0 +1,25 @@
+README, hw2 iii
+Margaret Chapman & Deanna Bessy
+
+Help/collaboration: We received help from a few different TAs. 
+
+What has been implemented correctly: All parts specified in the assignment. 
+
+Selections from design document: 
+
+	Part A:
+	Two-Dimensional, Polymorphic, Unboxed Arrays 
+
+	Uarray2 represents an unboxed 2D array of elements,
+	using a single Uarray, with the invariant being the index of an element 
+	at position [x,y] in the 2d array equals col*x + y. 
+
+	Part B:
+	Two-Dimensional Arrays of Bits
+
+	Bit2 represents a 2D bitmap using a single Bit vector, with the 
+	invariant being the index of a bit at
+	position [x,y] in the 2d bitmap equals col*x+y.
+
+Approximate time spent: 23 hours
+
