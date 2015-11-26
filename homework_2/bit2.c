@@ -1,3 +1,10 @@
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !! This is a hw from the class comp40 at Tufts! If you're in comp40 right now,!!
+  !! stop right there. You should not be viewing this code. Course policy and   !! 
+  !! academic integrity makes that a big no-no. Bugs have intentionally not been!! 
+  !! fixed to discourage plagarism                                              !!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/ 
+  
 /*
  * Deanna Bessy and Margaret Chapman
  * February 3, 2015

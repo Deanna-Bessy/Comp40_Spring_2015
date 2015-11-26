@@ -1,13 +1,24 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! This is a hw from the class comp40 at Tufts! If you're in comp40 right now,!!
+!! stop right there. You should not be viewing this code. Course policy and   !! 
+!! academic integrity makes that a big no-no. Bugs have intentionally not been!! 
+!! fixed to discourage plagarism                                              !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+
 Margaret Chapman & Deanna Bessy 
 Design for HW2, iii
 
 Part A:
 Two-Dimensional, Polymorphic, Unboxed Arrays 
 
-1. 
+1. What is the abstract thing you are trying to represent?
+
 We are representing an unboxed 2D array of elements. 
 
-2.
+2. What functions will you offer, and what are the contracts
+of that those functions must meet?
+
 extern Uarray2_T Uarray2_new(int col, int row, int size) - Creates a new 2D 
 array, dimensions col by row and each element having a size of size.  
 extern void Uarray2_free(Uarray2_T *uarray2) - Frees memory of 2D array.
@@ -28,7 +39,9 @@ row, UArray2_T uarray2, void *c1, void *c2 ), void *c2); - Walks through every
 element of the array, with col indeces changing more rapidly than row. Calls 
 the apply function on each element.   
 
-3. 
+3. What examples do you have of what the functions are
+supposed to do?
+
 Uarray2_T 2darray = Uarray2_new(10, 5, sizeof(char)); // Creates a new 2D 
 array that's 10 by 5
 Uarray2_height(2darray); // Returns 5
@@ -39,21 +52,27 @@ Uarray2_map_col_major(2darray, printelement, *c2); // Calls printelement
 of 2darray by col. 
 Uarray2_free(*2darray); // Frees memory associated with 2darray
 
-4. 
+4. What representation will you use, and what invariants
+will it satisfy?
+
 We will use a single Uarray, with the invariant being the index of an element 
 at position [x,y] in the 2d array equals col*x + y. 
 
-5.
+5. When a representation satisfies all invariants, what abstract
+thing from step 1 does it represent?
+
 For any element in the main Uarray, taking the floor of index/col will give 
 you the row of that element in the abstract 2D array. Taking (index%col) of an 
 element in the main Uarray will give  
 you the col of that element in the abstract 2D array.
 
-6. 
+6. What test cases have you devised?
+
 Start by using correct_usearry2 to test, and devise more cases that this 
 doesn't cover as needed. 
 
-7. 
+7. What programming idioms will you need?
+
 Especially the idioms listed under using unboxed arrays: initializing array 
 elements, storing values into an unboxed array. Other idioms will be used, 
 although not as important as the 
@@ -62,10 +81,12 @@ unboxed array idioms.
 Part B:
 Two-Dimensional Arrays of Bits
 
-1. 
+1. What is the abstract thing you are trying to represent?
 We are representing a 2D bitmap.
 
-2.
+2. What functions will you offer, and what are the contracts
+of that those functions must meet?
+
 extern Bit2_T Bit2_new(int col, int row) - Creates a 2D bitmap and sets all 
 values to 0.
 extern int Bit2_width(Bit2_T bit2) - Returns the number of cols in the bitmap.
@@ -84,7 +105,9 @@ extern void Bit2_map_row_major(Bit2_T bit2, void apply(int col, int row,
 Bit2_T bit2, int b, void *c1), void *c1); - Calls apply on each bit in the 
 bitmap with col indeces changing more rapidly than row indeces.
 
-3. 
+3. What examples do you have of what the functions are
+supposed to do?
+
 Bit2_T bitmap = Bit2_new(10, 5); // Creates a new 2D bitmap that's 10 by 5
 Bit2_height(bitmap); // Returns 5
 Bit2_width(bitmap); // Returns 10
@@ -96,21 +119,25 @@ Bit2_map_col_major(bitmap, printelement, *c2); // Calls printelement on
 each element of bitmap by col. 
 Bit2_free(*bitmap); // Frees memory associated with 2darray
 
-4.
+4. What representation will you use, and what invariants
+will it satisfy?
+
 We will use a single Bit vector, with the invariant being the index of a bit at
 position [x,y] in the 2d bitmap equals col*x+y.
 
-5.
+5. When a representation satisfies all invariants, what abstract
+thing from step 1 does it represent?
+
 For any element in the main bit vector, taking the floor of the index/col will 
 give the row of that element in the abstract 2D bitmap. Taking index % col of a
 element in the main bit vector will give the col of that element in the abstract
 2D bitmap.
 
-6.
+6. What test cases have you devised?
 Start by using correct_usebit2 to test, and devise more cases that this 
 doesn't cover as needed.
 
-7.
+7. What programming idioms will you need?
 None of the idioms are critical to the bitmap functions, but idioms may be 
 used for minor programming details.
 
